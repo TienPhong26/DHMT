@@ -27,6 +27,13 @@ color4 vertex_colors[8]; /*Danh sách các màu tương ứng cho 8 đỉnh hìn
 
 GLuint program;
 
+mat4 instance;
+mat4 model;
+GLuint model_loc;
+GLfloat theta[] = { 0,0,0 };
+GLdouble CD = 1.2, CC = 0.05, CR = 0.8;
+
+
 void initCube()
 {
 	// Gán giá trị tọa độ vị trí cho các đỉnh của hình lập phương
@@ -109,30 +116,143 @@ void shaderSetup( void )
 	GLuint loc_vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(loc_vColor);
 	glVertexAttribPointer(loc_vColor, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(sizeof(points)));
+	model_loc = glGetUniformLocation(program, "model");
+	glEnable(GL_DEPTH_TEST);
 
     glClearColor( 1.0, 1.0, 1.0, 1.0 );        /* Thiết lập màu trắng là màu xóa màn hình*/
 }
 
 
+void matban() {
+	instance = Translate(0, 0, 0) * Scale(CD, CC, CR); 
+	glUniformMatrix4fv(model_loc, 1, GL_TRUE, model * instance);
+	//glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+	glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+}
+
+void chanban(GLfloat x, GLfloat y, GLfloat z) {
+	instance = Translate(x, y, z) * Scale(0.05, 0.6, 0.05);
+	glUniformMatrix4fv(model_loc, 1, GL_TRUE, model * instance);
+	//glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+	glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+}
+
+void thanhben(GLfloat x, GLfloat y, GLfloat z) {
+	instance = Translate(x, y, z) * Scale(0.05, 0.15, 0.3);
+	glUniformMatrix4fv(model_loc, 1, GL_TRUE, model * instance);
+	//glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+	glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+}
+void thanhben2(GLfloat x, GLfloat y, GLfloat z) {
+	instance = Translate(x, y, z) * Scale(0.25, 0.15, 0.05);
+	glUniformMatrix4fv(model_loc, 1, GL_TRUE, model * instance);
+	//glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+	glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+}
+void thanhben3(GLfloat x, GLfloat y, GLfloat z) {
+	instance = Translate(x, y, z) * Scale(0.35, 0.05, 0.3);
+	glUniformMatrix4fv(model_loc, 1, GL_TRUE, model * instance);
+	//glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+	glDrawArrays(GL_TRIANGLES, 0, NumPoints);
+}
+GLfloat drawerPosition = -0.25f; // Vị trí ban đầu của ngăn kéo
+
+
+
+
+void ngankeo() {
+	thanhben(-0.5, -0.075, drawerPosition);
+	thanhben(-0.2, -0.075, drawerPosition);
+	thanhben2(-0.35, -0.075, drawerPosition-0.125);
+	thanhben2(-0.35, -0.075, drawerPosition +0.125);
+	thanhben3(-0.35, -0.15, drawerPosition);
+//	thanhben2(-0.4, -0.075,-0.25);
+}
+
+void tongchan() {
+	chanban(-0.575,-0.3,0.375);
+	chanban(-0.575, -0.3, -0.375);
+	chanban(0.575, -0.3, 0.375);
+	chanban(0.575, -0.3, -0.375);
+}
+
+void caiban() {
+	model = RotateY(theta[0]);
+	model = model * Translate(0.0, CC, 0.0)
+		* RotateZ(theta[1]);
+	matban();
+	tongchan() ;
+	
+	ngankeo();
+}
+
 void display( void )
 {
 	
     glClear( GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT );                
-    glDrawArrays( GL_TRIANGLES, 0, NumPoints );    /*Vẽ các tam giác*/
+    /*Vẽ các tam giác*/
+	caiban();
+	//ngankeo();
 	glutSwapBuffers();									   
 }
 
 
-void keyboard( unsigned char key, int x, int y )
+void keyboard(unsigned char key, int x, int y)
 {
-	// keyboard handler
+	switch (key) {
+	case 'b':
+		theta[0] += 5;
+		if (theta[0] > 360) theta[0] -= 360;
+		glutPostRedisplay();
+		break;
+	case 'B':
+		// một số lệnh 
+		theta[0] -= 5;
+		if (theta[0] > 360) theta[0] -= 360;
+		glutPostRedisplay();
+		break;
 
-    switch ( key ) {
-    case 033:			// 033 is Escape key octal value
-        exit(1);		// quit program
-        break;
-    }
+	case 'l':
+		// một số lệnh 
+		theta[1] += 5;
+		if (theta[1] > 360) theta[1] -= 360;
+		glutPostRedisplay();
+		break;
+	case 'L':
+		// một số lệnh 
+		theta[1] -= 5;
+		if (theta[1] > 360) theta[1] -= 360;
+		glutPostRedisplay();
+		break;
+
+	case 'u':
+		// một số lệnh 
+		theta[2] += 5;
+		if (theta[2] > 360) theta[2] -= 360;
+		glutPostRedisplay();
+		break;
+	case 'U':
+		// một số lệnh 
+		theta[2] -= 5;
+		if (theta[2] > 360) theta[2] = 0;
+		glutPostRedisplay();
+		break;
+	case 'k': // Khi nhấn phím 'K'
+		if (drawerPosition == -0.25) {
+			drawerPosition += -0.3f; // Kéo ngăn kéo ra
+		}
+		else {
+			drawerPosition = -0.25f; // Kéo ngăn kéo vào
+		}
+		glutPostRedisplay(); // Cập nhật lại màn hình
+		break;
+
+	default:
+		break;
+	}
 }
+
+
 
 
 int main( int argc, char **argv )
